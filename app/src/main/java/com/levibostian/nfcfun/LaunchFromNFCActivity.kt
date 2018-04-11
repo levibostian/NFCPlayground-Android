@@ -32,7 +32,7 @@ class LaunchFromNFCActivity : AppCompatActivity() {
                 for (i in 0 until rawMessages.size) {
                     val message = rawMessages[i] as NdefMessage
                     messages[i] = message
-                    Log.d(TAG, "Message: $message")
+                    Log.d(TAG, "Message: ${message.records.joinToString { it.toUri().toString() }}")
                 }
             }
         }

@@ -9,7 +9,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         fun getIntent(context: Context): Intent {
-            return Intent(context, this::class.java)
+            return Intent(context, MainActivity::class.java)
         }
     }
 
@@ -18,4 +18,5 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
     }
+
 }
