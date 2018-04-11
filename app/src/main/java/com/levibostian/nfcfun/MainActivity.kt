@@ -10,7 +10,9 @@ import android.content.IntentFilter.MalformedMimeTypeException
 import android.nfc.NfcAdapter
 import android.os.PatternMatcher
 import android.nfc.tech.NfcF
+import android.provider.Settings
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import com.levibostian.nfcfun.util.LogUtil
 import kotlinx.android.synthetic.main.activity_main.*
@@ -18,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var nfcAdapter: NfcAdapter
+    private var nfcAdapter: NfcAdapter? = null
     private lateinit var nfcReadPendingIntent: PendingIntent
     private lateinit var intentFilters: Array<IntentFilter>
     private lateinit var techListsArray: Array<Array<String>>
@@ -36,11 +38,26 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        setupNFCReading()
+        startupNfcReading()
     }
 
-    private fun setupNFCReading() {
+    private fun startupNfcReading() {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        if (nfcAdapter == null) {
+            activity_main_status_textview.text = "Your device does not support NFC."
+            return
+        }
+        if (!nfcAdapter!!.isEnabled) {
+            activity_main_status_textview.text = "Your NFC is not enabled."
+            activity_main_enable_nfc_button.visibility = View.VISIBLE
+            activity_main_enable_nfc_button.setOnClickListener {
+                startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+            }
+            return
+        }
+
+        activity_main_status_textview.text = "Warming up..."
+        activity_main_enable_nfc_button.visibility = View.GONE
         nfcReadPendingIntent = PendingIntent.getActivity(
                 this, NFC_READ_REQUEST_CODE, Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0)
 
@@ -56,22 +73,24 @@ class MainActivity : AppCompatActivity() {
 
         intentFilters = arrayOf(ndef)
         techListsArray = arrayOf(arrayOf(NfcF::class.java.name))
+
+        nfcAdapter!!.enableForegroundDispatch(this, nfcReadPendingIntent, intentFilters, techListsArray)
+        activity_main_status_textview.text = "Ready to scan NFC tag"
     }
 
     override fun onResume() {
         super.onResume()
 
-        activity_main_status_textview.text = "Warming up..."
-        nfcAdapter.enableForegroundDispatch(this, nfcReadPendingIntent, intentFilters, techListsArray)
-        activity_main_status_textview.text = "Ready to scan NFC tag"
+        startupNfcReading()
     }
 
     override fun onPause() {
         super.onPause()
 
-        activity_main_status_textview.text = "Turning off NFC reading..."
-        nfcAdapter.disableForegroundDispatch(this)
-        activity_main_status_textview.text = "NFC reading turned off."
+        nfcAdapter?.let {
+            it.disableForegroundDispatch(this)
+            activity_main_status_textview.text = "NFC reading turned off."
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {

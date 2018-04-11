@@ -39,3 +39,5 @@ Install the mobile app to your device. Go to your phone's settings to make sure 
 Now, open up this app. It will tell you that it is ready to scan a NFC tag. Scan your NFC tag you just wrote to on the phone.
 
 You will see a toast saying the NFC tag was read and if you check the logcat you will see more info about the read.
+
+- [x] Check if NFC is enabled when the app starts. If not, have a button that sends the user to the NFC settings to enable it. 
